@@ -1,0 +1,275 @@
+{
+  "n": 42,
+  "category_accuracy": 0.6667,
+  "category_macro_f1": 0.618,
+  "urgency_accuracy": 0.5714,
+  "both_correct": 0.4048,
+  "high_urgency_missed": 4,
+  "high_urgency_total": 13,
+  "llm_fallbacks": 0,
+  "median_latency_ms": 0,
+  "per_category": {
+    "fraud_security": {
+      "precision": 0.8,
+      "recall": 0.571,
+      "f1": 0.667,
+      "support": 7
+    },
+    "complaint": {
+      "precision": 0.333,
+      "recall": 0.143,
+      "f1": 0.2,
+      "support": 7
+    },
+    "account_services": {
+      "precision": 0.5,
+      "recall": 0.286,
+      "f1": 0.364,
+      "support": 7
+    },
+    "card_services": {
+      "precision": 0.778,
+      "recall": 1.0,
+      "f1": 0.875,
+      "support": 7
+    },
+    "financing": {
+      "precision": 0.7,
+      "recall": 1.0,
+      "f1": 0.824,
+      "support": 7
+    },
+    "other": {
+      "precision": 0.636,
+      "recall": 1.0,
+      "f1": 0.778,
+      "support": 7
+    }
+  },
+  "per_urgency": {
+    "high": {
+      "precision": 0.818,
+      "recall": 0.692,
+      "f1": 0.75,
+      "support": 13
+    },
+    "medium": {
+      "precision": 0.3,
+      "recall": 0.6,
+      "f1": 0.4,
+      "support": 10
+    },
+    "low": {
+      "precision": 0.818,
+      "recall": 0.474,
+      "f1": 0.6,
+      "support": 19
+    }
+  },
+  "confusion": {
+    "fraud_security": {
+      "fraud_security": 4,
+      "complaint": 1,
+      "account_services": 1,
+      "card_services": 1,
+      "financing": 0,
+      "other": 0
+    },
+    "complaint": {
+      "fraud_security": 0,
+      "complaint": 1,
+      "account_services": 1,
+      "card_services": 0,
+      "financing": 2,
+      "other": 3
+    },
+    "account_services": {
+      "fraud_security": 1,
+      "complaint": 1,
+      "account_services": 2,
+      "card_services": 1,
+      "financing": 1,
+      "other": 1
+    },
+    "card_services": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 7,
+      "financing": 0,
+      "other": 0
+    },
+    "financing": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 7,
+      "other": 0
+    },
+    "other": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 0,
+      "other": 7
+    }
+  },
+  "misses": [
+    {
+      "id": "HF2",
+      "subject": "Caj tidak dikenali pada kad kredit",
+      "expected": "fraud_security/high",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "HF3",
+      "subject": "Call claiming to be from Bank Negara",
+      "expected": "fraud_security/medium",
+      "got": "complaint/high"
+    },
+    {
+      "id": "HF4",
+      "subject": "Suspicious email asking me to update my details",
+      "expected": "fraud_security/medium",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "HF6",
+      "subject": "Safe banking while travelling",
+      "expected": "fraud_security/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "HC1",
+      "subject": "Fourth visit and my documents were lost again",
+      "expected": "complaint/medium",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HC3",
+      "subject": "No parking at your branch",
+      "expected": "complaint/low",
+      "got": "other/low"
+    },
+    {
+      "id": "HC4",
+      "subject": "Pegawai tidak menghubungi saya seperti dijanjikan",
+      "expected": "complaint/medium",
+      "got": "other/low"
+    },
+    {
+      "id": "HC5",
+      "subject": "My lawyer will be writing to you",
+      "expected": "complaint/high",
+      "got": "financing/high"
+    },
+    {
+      "id": "HC6",
+      "subject": "Your hold music",
+      "expected": "complaint/low",
+      "got": "other/low"
+    },
+    {
+      "id": "HC7",
+      "subject": "Wrong overdraft fee and staff laughed at me",
+      "expected": "complaint/medium",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "HA1",
+      "subject": "Not receiving TAC, must pay supplier today",
+      "expected": "account_services/high",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "HA2",
+      "subject": "Bank confirmation letter for embassy",
+      "expected": "account_services/medium",
+      "got": "other/low"
+    },
+    {
+      "id": "HA3",
+      "subject": "Change my email address",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "HA4",
+      "subject": "Daftar DuitNow",
+      "expected": "account_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "HA5",
+      "subject": "Cheque deposited five days ago still not cleared",
+      "expected": "account_services/medium",
+      "got": "complaint/medium"
+    },
+    {
+      "id": "HA7",
+      "subject": "Savings rate",
+      "expected": "account_services/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HK2",
+      "subject": "0% instalment for a hospital bill",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "HK4",
+      "subject": "Cashback card for petrol",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "HK7",
+      "subject": "Change card statement date",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "HL1",
+      "subject": "Auction notice for my house",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HL2",
+      "subject": "Lost my job, cannot pay car instalment",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HL3",
+      "subject": "Personal financing for government staff",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HL4",
+      "subject": "Disbursement to developer is late",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HL5",
+      "subject": "Penyata baki pembiayaan",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "HL7",
+      "subject": "Top up my home loan",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    }
+  ],
+  "classifier": "baseline",
+  "title": "keyword baseline",
+  "date": "2026-11-17",
+  "data_file": "emails_holdout.jsonl"
+}

@@ -35,22 +35,38 @@ Personal data has been replaced with placeholders such as [IC], [CARD], [PHONE],
 Return one JSON object with exactly these keys and nothing else:
   "category": one of
       "fraud_security"   - unauthorised transactions, scams, phishing, lost or stolen credentials
-      "complaint"        - dissatisfaction with service, staff, delays or how a case was handled
+      "complaint"        - dissatisfaction with service, staff, fees, delays, the app, or how a case was handled
       "account_services" - savings/current accounts, statements, online banking, transfers, personal details
-      "card_services"    - credit/debit card requests: fees, limits, replacement, activation, rewards
-      "financing"        - loans, home/car/personal financing, instalments, settlement, restructuring
+      "card_services"    - credit/debit card requests: fees, limits, replacement, activation, rewards,
+                           and instalment plans or balance transfers on a credit card
+      "financing"        - loan products (home, car, personal, ASB, business, education): applications,
+                           instalments, settlement, restructuring
       "other"            - spam, marketing, job enquiries, compliments, anything not a banking request
   "urgency": one of
-      "high"   - money or account access is at risk now, a security incident, or a legal/regulator threat
-      "medium" - a real problem or request that needs action within days
-      "low"    - information requests, compliments, suggestions, spam
+      "high"   - any one of these:
+                 money was taken, or is at risk, through fraud, theft or an unauthorised transaction;
+                 the customer cannot reach their money or use their card and needs it now;
+                 a security incident, or personal data sent to the wrong person;
+                 legal action, a letter of demand, repossession or auction, or a threat to go to a
+                 lawyer or a regulator such as Bank Negara;
+                 the customer says they can no longer afford their payments and asks for relief;
+                 a deadline within about a week is at risk because something is stuck, late or wrong
+                 on the bank's side
+      "medium" - something has gone wrong or is overdue and needs fixing, a complaint that asks for a
+                 fix, an explanation or an apology, or a request tied to a date, and nothing in the
+                 "high" list applies. A scam or phishing attempt that the customer only reports, with
+                 no money lost and no details given away, is "medium".
+      "low"    - routine requests and questions with no deadline and nothing going wrong (a fee waiver,
+                 a limit change, product rates, how to do something), general feedback or a grumble
+                 with nothing to fix for this customer, compliments, spam
   "summary": one sentence, under 300 characters, describing what the customer wants
   "suggested_reply": a polite draft reply for a human agent to review, under 1200 characters.
       Do not promise refunds, approvals or outcomes. Do not include links.
       Never ask for a password, PIN, OTP or TAC.
   "confidence": a number from 0 to 1
 
-If an email is mainly a complaint about how an earlier issue was handled, use "complaint".
+If the main point of the email is that the customer is unhappy with the bank, use "complaint",
+even when it mentions an account, a card or a loan. A polite request is not a complaint.
 If money was taken without the customer's consent, use "fraud_security" even if they are angry.
 """
 

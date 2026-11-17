@@ -2,10 +2,10 @@
   "n": 120,
   "category_accuracy": 0.8667,
   "category_macro_f1": 0.8597,
-  "urgency_accuracy": 0.5583,
-  "both_correct": 0.475,
-  "high_urgency_missed": 7,
-  "high_urgency_total": 30,
+  "urgency_accuracy": 0.55,
+  "both_correct": 0.4667,
+  "high_urgency_missed": 8,
+  "high_urgency_total": 31,
   "llm_fallbacks": 0,
   "median_latency_ms": 0,
   "per_category": {
@@ -49,15 +49,15 @@
   "per_urgency": {
     "high": {
       "precision": 0.657,
-      "recall": 0.767,
-      "f1": 0.708,
-      "support": 30
+      "recall": 0.742,
+      "f1": 0.697,
+      "support": 31
     },
     "medium": {
-      "precision": 0.387,
-      "recall": 0.75,
-      "f1": 0.511,
-      "support": 32
+      "precision": 0.371,
+      "recall": 0.742,
+      "f1": 0.495,
+      "support": 31
     },
     "low": {
       "precision": 0.87,
@@ -466,6 +466,12 @@
       "got": "financing/medium"
     },
     {
+      "id": "L18",
+      "subject": "Financing offer letter correction",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
       "id": "L19",
       "subject": "Partial prepayment",
       "expected": "financing/low",
@@ -498,5 +504,6 @@
   ],
   "classifier": "baseline",
   "title": "keyword baseline",
-  "date": "2026-11-17"
+  "date": "2026-11-17",
+  "data_file": "emails.jsonl"
 }

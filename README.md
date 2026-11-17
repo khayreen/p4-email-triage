@@ -34,23 +34,51 @@ Categories: `fraud_security`, `complaint`, `account_services`, `card_services`, 
 
 ## Results
 
-Measured on 120 hand-written, labelled synthetic emails (`data/emails.jsonl`, 20 per category, about a fifth in Malay).
+Two sets of hand-written, labelled synthetic emails, about a fifth in Malay:
+
+- **Main set**, 120 emails (`data/emails.jsonl`). The prompt's urgency rules were refined after looking at misses on this set.
+- **Holdout set**, 42 emails (`data/emails_holdout.jsonl`). Written afterwards and never used to tune anything, so it is the fairer test.
+
+### Main set (120 emails)
 
 | Classifier | Category accuracy | Urgency accuracy | Both correct | High-urgency missed |
 |---|---|---|---|---|
-| Keyword baseline | 86.7% | 55.8% | 47.5% | 7 of 30 |
-| LLM (Groq, `openai/gpt-oss-120b`) | **96.7%** | **76.7%** | **75.0%** | 5 of 30 |
+| Keyword baseline | 86.7% | 55.0% | 46.7% | 8 of 31 |
+| LLM, first prompt | 96.7% | 76.7% | 75.0% | 5 of 30 |
+| LLM, refined prompt | *not measured yet* | | | |
 
-The baseline row is reproducible with no API key: `python -m eval.run_eval --classifier baseline`. Full report with the confusion matrix and every miss: [`results/baseline.md`](results/baseline.md).
+### Holdout set (42 emails)
 
-The LLM row is one run on 17 November 2026, reproducible with an API key: `python -m eval.run_eval --classifier llm`. It writes `results/llm.md`.
+| Classifier | Category accuracy | Urgency accuracy | Both correct | High-urgency missed |
+|---|---|---|---|---|
+| Keyword baseline | 66.7% | 57.1% | 40.5% | 4 of 13 |
+| LLM, refined prompt | *not measured yet* | | | |
+
+The LLM rows use Groq's `openai/gpt-oss-120b`. Reports with the confusion matrix and every miss are in [`results/`](results/).
+
+```
+python -m eval.run_eval --classifier baseline                                     # no API key needed
+python -m eval.run_eval --classifier llm
+python -m eval.run_eval --classifier llm --data data/emails_holdout.jsonl
+```
+
+### What the first LLM run showed
+
+The first prompt got the category right 116 times out of 120, but urgency only 92 times. The misses had a pattern:
+
+- **18 routine requests rated "medium" instead of "low"** (a fee waiver, a limit increase, a rate enquiry). The prompt said "medium" was for "a request that needs action within days", which fits almost any request.
+- **5 high-urgency emails rated "medium"**: a threat to go to Bank Negara, a letter of demand, a customer who lost their job, and two deadlines within the week. The prompt's "high" only named fraud, lost access and legal threats.
+- **4 category misses**: two complaints filed under the product they were about, and two card instalment requests filed as financing.
+
+The fix was to the wording of the rules, not the model: the prompt now spells out what makes an email high, medium or low, and that being unhappy with the bank is a complaint whatever product it mentions. Reviewing the misses also exposed one inconsistent label (L18, a signing deadline put at risk by a bank error, was "medium" while two near-identical cases were "high"). It was corrected, which is why the baseline row counts 31 high-urgency emails and the first LLM row, measured before the correction, counts 30.
 
 **Read these numbers with care:**
 
-- The emails are synthetic and written by the same person who wrote the keyword rules, so the baseline is flattered. Real customer mail is messier.
-- 120 emails is a small test set. A difference of a few points between two runs is noise.
-- "High-urgency missed" matters more than overall accuracy: a missed fraud report costs far more than a mislabelled newsletter. The LLM still misses 5 of 30, so urgency is the weak point and the next thing to improve.
-- The LLM row is a single run. It has not been repeated, and the prompt has not been tuned against these results.
+- The emails are synthetic, and the main set was written by the same person who wrote the keyword rules. The baseline's drop from 86.7% to 66.7% category accuracy on the holdout set shows how much that flattered it.
+- The refined prompt was written after seeing the main-set misses, so its main-set score will be optimistic. The holdout score is the one to quote.
+- Both sets are small. On 42 emails, one email is 2.4 points.
+- "High-urgency missed" matters more than overall accuracy: a missed fraud report costs far more than a mislabelled newsletter.
+- Each LLM row is a single run.
 
 ## LLM providers
 
@@ -128,7 +156,7 @@ Email content is attacker-controlled and gets displayed to staff. The review pag
 
 ## Limitations
 
-- The LLM still rates 5 of 30 high-urgency emails too low (see Results).
+- The refined prompt has not been measured yet (see Results). The first prompt rated 5 of 30 high-urgency emails too low.
 - The Gmail connector's message parsing is unit-tested, but the OAuth flow has not been run against a live mailbox.
 - SQLite and a single process are fine for a demo, not for production volume.
 - The API key is a single shared secret, with no per-user accounts or audit of who approved what.
@@ -155,7 +183,7 @@ app/
   main.py         FastAPI routes;  asgi.py is the server entry point
   review.html     review page
   ingest/         .eml / JSONL / Gmail loaders
-data/             120 labelled emails, 12 attack emails, a sample inbox
+data/             120 + 42 labelled emails, 12 attack emails, a sample inbox
 eval/run_eval.py  accuracy, per-class metrics, confusion matrix
 tests/            75 tests, including the attack tests
 ```

@@ -6,9 +6,9 @@ Run on 2026-11-17 against 120 labelled synthetic emails (`data/emails.jsonl`).
 |---|---|
 | Category accuracy | 86.7% |
 | Category macro-F1 | 0.860 |
-| Urgency accuracy | 55.8% |
-| Category and urgency both correct | 47.5% |
-| High-urgency emails missed | 7 of 30 |
+| Urgency accuracy | 55.0% |
+| Category and urgency both correct | 46.7% |
+| High-urgency emails missed | 8 of 31 |
 | Median latency | 0 ms |
 
 ## Per category
@@ -33,7 +33,7 @@ Run on 2026-11-17 against 120 labelled synthetic emails (`data/emails.jsonl`).
 | **financing** | 0 | 0 | 0 | 0 | 20 | 0 |
 | **other** | 0 | 0 | 0 | 0 | 0 | 20 |
 
-## Misses (63)
+## Misses (64)
 
 | ID | Subject | Expected | Got |
 |---|---|---|---|
@@ -95,6 +95,7 @@ Run on 2026-11-17 against 120 labelled synthetic emails (`data/emails.jsonl`).
 | L14 | SME business financing | financing/low | financing/medium |
 | L15 | Redraw from flexi home loan | financing/low | financing/medium |
 | L17 | Education loan for my daughter | financing/low | financing/medium |
+| L18 | Financing offer letter correction | financing/high | financing/medium |
 | L19 | Partial prepayment | financing/low | financing/medium |
 | L20 | Guarantor wants to withdraw | financing/low | financing/medium |
 | O01 | Boost your website ranking today | other/low | other/high |

@@ -88,7 +88,7 @@ def evaluate(rows: list[dict], provider, sleep: float) -> dict:
 def to_markdown(r: dict, title: str) -> str:
     lines = [
         f"# Evaluation: {title}", "",
-        f"Run on {r['date']} against {r['n']} labelled synthetic emails (`data/emails.jsonl`).", "",
+        f"Run on {r['date']} against {r['n']} labelled synthetic emails (`data/{r['data_file']}`).", "",
         "| Metric | Result |", "|---|---|",
         f"| Category accuracy | {r['category_accuracy']:.1%} |",
         f"| Category macro-F1 | {r['category_macro_f1']:.3f} |",
@@ -142,18 +142,20 @@ def main() -> None:
     report = evaluate(rows, provider, args.sleep)
     if provider is not None and report["llm_fallbacks"] > len(rows) // 2:
         sys.exit(f"{report['llm_fallbacks']} of {len(rows)} LLM calls failed, so this is not an LLM result. Nothing was written.")
-    report.update({"classifier": args.classifier, "title": title, "date": date.today().isoformat()})
+    report.update({"classifier": args.classifier, "title": title, "date": date.today().isoformat(), "data_file": Path(args.data).name})
     out = ROOT / "results"
     out.mkdir(exist_ok=True)
-    (out / f"{args.classifier}.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-    (out / f"{args.classifier}.md").write_text(to_markdown(report, title), encoding="utf-8")
+    stem = Path(args.data).stem
+    name = args.classifier if stem == "emails" else f"{args.classifier}_{stem.removeprefix('emails_')}"
+    (out / f"{name}.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (out / f"{name}.md").write_text(to_markdown(report, title), encoding="utf-8")
 
     print(f"{title}")
     print(f"  category accuracy : {report['category_accuracy']:.1%}")
     print(f"  urgency accuracy  : {report['urgency_accuracy']:.1%}")
     print(f"  both correct      : {report['both_correct']:.1%}")
     print(f"  high urgency missed: {report['high_urgency_missed']} of {report['high_urgency_total']}")
-    print(f"  report: results/{args.classifier}.md")
+    print(f"  report: results/{name}.md")
 
 
 if __name__ == "__main__":
