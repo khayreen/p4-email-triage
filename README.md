@@ -45,14 +45,18 @@ Two sets of hand-written, labelled synthetic emails, about a fifth in Malay:
 |---|---|---|---|---|
 | Keyword baseline | 86.7% | 55.0% | 46.7% | 8 of 31 |
 | LLM, first prompt | 96.7% | 76.7% | 75.0% | 5 of 30 |
-| LLM, refined prompt | *not measured yet* | | | |
+| LLM, refined prompt | 97.5% | 90.0% | 88.3% | 1 of 31 |
+| LLM, refined prompt + credential rule | 97.5% | 90.8% | 89.2% | 0 of 31 |
 
 ### Holdout set (42 emails)
 
 | Classifier | Category accuracy | Urgency accuracy | Both correct | High-urgency missed |
 |---|---|---|---|---|
 | Keyword baseline | 66.7% | 57.1% | 40.5% | 4 of 13 |
-| LLM, refined prompt | *not measured yet* | | | |
+| LLM, refined prompt | 95.2% | 97.6% | 95.2% | 0 of 13 |
+| LLM, refined prompt + credential rule | 95.2% | 97.6% | 95.2% | 0 of 13 |
+
+**The number to quote is the holdout: 95.2% of emails had both category and urgency right, and no high-urgency email was missed.** That is up from 40.5% and 4 of 13 missed for the keyword baseline on the same emails.
 
 The LLM rows use Groq's `openai/gpt-oss-120b`. Reports with the confusion matrix and every miss are in [`results/`](results/).
 
@@ -60,7 +64,10 @@ The LLM rows use Groq's `openai/gpt-oss-120b`. Reports with the confusion matrix
 python -m eval.run_eval --classifier baseline                                     # no API key needed
 python -m eval.run_eval --classifier llm
 python -m eval.run_eval --classifier llm --data data/emails_holdout.jsonl
+python -m eval.rescore results/llm.json results/llm_holdout.json                  # adds the credential rule
 ```
+
+The "+ credential rule" rows were not a second LLM run. The rule is deterministic and only ever raises urgency, so `eval/rescore.py` applies it to the saved predictions of the run above, which gives exactly what a fresh run with the same answers would score.
 
 ### What the first LLM run showed
 
@@ -72,13 +79,23 @@ The first prompt got the category right 116 times out of 120, but urgency only 9
 
 The fix was to the wording of the rules, not the model: the prompt now spells out what makes an email high, medium or low, and that being unhappy with the bank is a complaint whatever product it mentions. Reviewing the misses also exposed one inconsistent label (L18, a signing deadline put at risk by a bank error, was "medium" while two near-identical cases were "high"). It was corrected, which is why the baseline row counts 31 high-urgency emails and the first LLM row, measured before the correction, counts 30.
 
+### What the refined prompt changed
+
+On the main set, urgency accuracy rose from 76.7% to 90.0% and high-urgency misses fell from 5 to 1. The 13 remaining urgency misses on that set now lean the other way:
+
+- **9 rated too low.** Eight are routine requests the labels call "medium" (a 6-month statement, a phone number change, cashback not credited, a card activation, early settlement) that the model now calls "low". Being a little slow on a routine request costs little, so I stopped tuning the prompt here: the first prompt erred high and the second errs low, and another round would mostly move the error around.
+- **1 serious miss: F05**, a customer who typed their online banking password into a phishing site, rated "medium". That one is an active compromise. Rather than edit the prompt again, a rule in code (`guard.credentials_disclosed`) now sets urgency to "high" whenever a customer says, in English or Malay, that they entered or gave away a password, OTP, TAC or PIN. The model cannot lower it, and a test feeds the pipeline a model answer of "low" to prove that. Across all 162 labelled emails the rule fires on two, F05 and holdout HF7, both labelled high, and HF7 was already right.
+- **3 category confusions**: a general "how do I avoid scams" question filed as account services (holdout HF6 is the same pattern), and a frozen account and a late-payment charge read as complaints.
+
+The holdout scored higher than the main set. With 42 emails that gap is mostly noise, so the fair reading is that the refined prompt held up on emails it was never tuned on, not that it does better on them. One holdout label is arguable: HL6, an instalment deducted twice, is labelled financing/medium and the model said complaint/high. It was left as written, because changing a holdout label after seeing the result would be tuning on it.
+
 **Read these numbers with care:**
 
 - The emails are synthetic, and the main set was written by the same person who wrote the keyword rules. The baseline's drop from 86.7% to 66.7% category accuracy on the holdout set shows how much that flattered it.
 - The refined prompt was written after seeing the main-set misses, so its main-set score will be optimistic. The holdout score is the one to quote.
 - Both sets are small. On 42 emails, one email is 2.4 points.
 - "High-urgency missed" matters more than overall accuracy: a missed fraud report costs far more than a mislabelled newsletter.
-- Each LLM row is a single run.
+- Each LLM row is a single run. The credential rule was written after seeing F05 on the main set; on the holdout it fired once on an email the model already had right, so the holdout neither confirms nor refutes it.
 
 ## LLM providers
 
@@ -148,6 +165,7 @@ Email content is attacker-controlled and gets displayed to staff. The review pag
 - **PII masking:** MyKad (with date validation), payment cards (Luhn-checked), Malaysian mobile and landline numbers, passports, email addresses, and any remaining 9 to 17 digit number. Names and street addresses are **not** masked; that needs a named-entity model and is the main gap.
 - **Where personal data rests:** only in the SQLite review database, because the agent needs the original to reply. Keep it on an encrypted disk. It is git-ignored.
 - **Least privilege:** the Gmail connector requests `gmail.readonly` only. The service holds no credential that can send mail or move money.
+- **Urgency floor:** a customer who says they gave away a password, OTP, TAC or PIN is always "high", whatever the model says.
 - **Human in the loop:** fraud cases, high urgency, low confidence, suspected injection and any LLM failure are flagged; nothing is sent automatically in any case.
 - **Logging:** every decision is logged with category, urgency, confidence and PII counts, never values.
 - **Access control:** set `SERVICE_API_KEY` to require an `X-API-Key` header. Compared in constant time.
@@ -156,7 +174,9 @@ Email content is attacker-controlled and gets displayed to staff. The review pag
 
 ## Limitations
 
-- The refined prompt has not been measured yet (see Results). The first prompt rated 5 of 30 high-urgency emails too low.
+- The model now tends to rate routine requests "low" when the labels say "medium" (9 of 120 on the main set).
+- General scam-awareness questions are filed as account services rather than fraud and security (F16, HF6).
+- The credential rule matches phrasings, so an unusual way of saying "I gave them my OTP" will not trigger it; the model's own rating still applies then.
 - The Gmail connector's message parsing is unit-tested, but the OAuth flow has not been run against a live mailbox.
 - SQLite and a single process are fine for a demo, not for production volume.
 - The API key is a single shared secret, with no per-user accounts or audit of who approved what.
@@ -175,7 +195,7 @@ Email content is attacker-controlled and gets displayed to staff. The review pag
 app/
   schemas.py      strict input and output contracts
   pii.py          masking, plus process-wide log masking
-  guard.py        injection screen and reply checks
+  guard.py        injection screen, reply checks, credential-disclosure floor
   classifier.py   the pipeline and the system prompt
   baseline.py     keyword classifier (comparison and fallback)
   llm.py          one client for all OpenAI-compatible providers
@@ -185,7 +205,8 @@ app/
   ingest/         .eml / JSONL / Gmail loaders
 data/             120 + 42 labelled emails, 12 attack emails, a sample inbox
 eval/run_eval.py  accuracy, per-class metrics, confusion matrix
-tests/            75 tests, including the attack tests
+eval/rescore.py   re-scores a saved run with the code rules
+tests/            93 tests, including the attack tests
 ```
 
 ## License
