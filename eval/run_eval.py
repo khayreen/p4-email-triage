@@ -16,7 +16,7 @@ from pathlib import Path
 
 from app import config
 from app.classifier import triage
-from app.llm import OpenAICompatProvider
+from app.llm import LLMError, OpenAICompatProvider, explain
 from app.schemas import Category, EmailIn, Urgency
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -132,8 +132,16 @@ def main() -> None:
             sys.exit(f"No API key found for provider '{s.provider}'. Set it in your environment (see .env.example).")
         provider = OpenAICompatProvider(s.base_url, s.api_key, s.model, s.timeout_s)
         title = f"LLM ({s.provider}, {s.model})"
+        # One test call first. Without it, a wrong key or model name would make every
+        # email fall back to the keyword rules and the report would not be an LLM result.
+        try:
+            provider.complete("Reply with the JSON object {\"ok\": true}.", "ping")
+        except LLMError as exc:
+            sys.exit(f"The LLM is not reachable, so nothing was measured.\n  {explain(exc)}")
 
     report = evaluate(rows, provider, args.sleep)
+    if provider is not None and report["llm_fallbacks"] > len(rows) // 2:
+        sys.exit(f"{report['llm_fallbacks']} of {len(rows)} LLM calls failed, so this is not an LLM result. Nothing was written.")
     report.update({"classifier": args.classifier, "title": title, "date": date.today().isoformat()})
     out = ROOT / "results"
     out.mkdir(exist_ok=True)

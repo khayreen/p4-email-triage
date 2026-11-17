@@ -66,3 +66,33 @@ def test_unexpected_body_is_an_error(monkeypatch):
     stub(monkeypatch, [(200, {"nope": True})])
     with pytest.raises(LLMError):
         OpenAICompatProvider("http://x", "k", "m").complete("s", "u")
+
+
+def test_model_without_json_mode_is_retried_without_it(monkeypatch):
+    calls = stub(monkeypatch, [(400, {"error": "response_format not supported"}), OK])
+    assert OpenAICompatProvider("http://x", "k", "m").complete("s", "u") == '{"a": 1}'
+    assert "response_format" in calls[0]["json"] and "response_format" not in calls[1]["json"]
+
+
+def test_failures_are_explained_in_plain_words(monkeypatch):
+    stub(monkeypatch, [(404, {})])
+    with pytest.raises(LLMError) as exc:
+        OpenAICompatProvider("http://x", "k", "retired-model").complete("s", "u")
+    assert "LLM_MODEL" in llm.explain(exc.value) and "HTTP 404" in llm.explain(exc.value)
+    assert llm.explain(LLMError("LLM call failed: network error: ConnectError")) == "LLM call failed: network error: ConnectError"
+
+
+def test_evaluation_refuses_to_report_when_the_llm_is_unreachable(monkeypatch, tmp_path, capsys):
+    import sys
+
+    from eval import run_eval
+
+    stub(monkeypatch, [(404, {})])
+    monkeypatch.setenv("LLM_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "k")
+    monkeypatch.setattr(run_eval, "ROOT", tmp_path)   # would write results here if it wrongly continued
+    monkeypatch.setattr(sys, "argv", ["run_eval", "--classifier", "llm", "--data", str(run_eval.Path(__file__).parent.parent / "data" / "emails.jsonl")])
+    with pytest.raises(SystemExit) as exc:
+        run_eval.main()
+    assert "not reachable" in str(exc.value) and "LLM_MODEL" in str(exc.value)
+    assert not (tmp_path / "results").exists()

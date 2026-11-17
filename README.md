@@ -156,7 +156,7 @@ app/
   ingest/         .eml / JSONL / Gmail loaders
 data/             120 labelled emails, 12 attack emails, a sample inbox
 eval/run_eval.py  accuracy, per-class metrics, confusion matrix
-tests/            72 tests, including the attack tests
+tests/            75 tests, including the attack tests
 ```
 
 ## License

@@ -11,6 +11,20 @@ class LLMError(RuntimeError):
     pass
 
 
+HINTS = {
+    "HTTP 401": "the API key was rejected; check it in .env",
+    "HTTP 403": "the API key is not allowed to use this model",
+    "HTTP 404": "the model name was not found; providers retire models, so set LLM_MODEL in .env to a current one",
+    "HTTP 429": "rate limit reached; wait a minute or raise --sleep",
+}
+
+
+def explain(error: Exception) -> str:
+    """A plain-words reason for a failed call, for the person running a script."""
+    text = str(error)
+    return next((f"{text} ({hint})" for code, hint in HINTS.items() if code in text), text)
+
+
 class Provider(Protocol):
     model: str
 
@@ -48,6 +62,11 @@ class OpenAICompatProvider:
                     except (KeyError, IndexError, ValueError) as exc:
                         raise LLMError("unexpected response shape") from exc
                 last = f"HTTP {r.status_code}"
+                if r.status_code == 400 and "response_format" in payload:
+                    # Some models reject JSON mode. The prompt still asks for JSON and
+                    # the answer is validated either way, so try once without it.
+                    payload = {k: v for k, v in payload.items() if k != "response_format"}
+                    continue
                 # Only rate limits and server errors are worth retrying.
                 if r.status_code != 429 and r.status_code < 500:
                     break

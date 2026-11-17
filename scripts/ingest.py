@@ -12,7 +12,7 @@ import time
 from app import config
 from app.classifier import triage
 from app.ingest import files
-from app.llm import OpenAICompatProvider
+from app.llm import LLMError, OpenAICompatProvider, explain
 from app.pii import install_log_masking
 from app.store import Store
 
@@ -40,6 +40,12 @@ def main() -> None:
         emails = gmail.fetch(args.query, args.max)
     else:
         emails = files.load(args.path)
+
+    if provider:
+        try:
+            provider.complete("Reply with the JSON object {\"ok\": true}.", "ping")
+        except LLMError as exc:
+            raise SystemExit(f"The LLM is not reachable.\n  {explain(exc)}")
 
     count = 0
     for email in emails:
