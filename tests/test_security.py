@@ -136,3 +136,53 @@ def test_dangerous_reply_is_held_for_review(reply, reason):
 def test_review_page_never_uses_innerhtml(client):
     page = client.get("/").text
     assert ".innerHTML" not in page and "insertAdjacentHTML" not in page and "document.write" not in page
+
+
+# --- Defence: the model cannot downplay a customer who gave away a credential --------
+
+HOLDOUT = [json.loads(line) for line in (Path(__file__).parent.parent / "data" / "emails_holdout.jsonl").read_text(encoding="utf-8").splitlines()]
+F05 = next(e for e in CLEAN if e["id"] == "F05")
+
+
+def _says(urgency: str, category: str = "fraud_security") -> str:
+    return json.dumps({**GOOD, "category": category, "urgency": urgency})
+
+
+@pytest.mark.parametrize("urgency", ["low", "medium"])
+def test_disclosed_password_is_high_even_when_the_model_says_otherwise(urgency):
+    # Worst case: the model rates F05 (typed a password into a phishing site) as not urgent,
+    # as gpt-oss-120b did in the real run. The floor in code overrides it.
+    result = triage(EmailIn(subject=F05["subject"], body=F05["body"]), FakeProvider(_says(urgency)))
+    assert result.urgency.value == "high"
+    assert "urgency_raised_credentials_disclosed" in result.review_reasons
+    assert result.needs_review
+
+
+@pytest.mark.parametrize("text", [
+    "I clicked the link and entered my online banking password.",
+    "A caller said he was from the bank. I gave him the OTP.",
+    "I read out the TAC to the man on the phone ten minutes ago.",
+    "Saya telah berikan kod TAC kepada pemanggil itu.",
+    "Saya dah masukkan kata laluan dalam laman web itu.",
+])
+def test_credential_disclosure_is_recognised(text):
+    assert guard.credentials_disclosed(text)
+
+
+@pytest.mark.parametrize("text", [
+    "I did not share my OTP with anyone.",
+    "A caller asked me to read out the TAC. I refused and hung up.",
+    "I entered the wrong PIN three times and my card is blocked.",
+    "I would prefer to enter my PIN for payments above RM100.",
+    "How do I change my password?",
+    "Saya tidak beri OTP kepada sesiapa.",
+])
+def test_ordinary_mentions_of_credentials_are_not_raised(text):
+    assert not guard.credentials_disclosed(text)
+
+
+def test_floor_only_fires_on_emails_labelled_high():
+    # Across both labelled sets, the rule must never push a medium or low email up.
+    fired = [e for e in CLEAN + HOLDOUT if guard.credentials_disclosed(f"{e['subject']}\n{e['body']}")]
+    assert {e["id"] for e in fired} == {"F05", "HF7"}
+    assert all(e["urgency"] == "high" for e in fired)

@@ -5,6 +5,7 @@ Security properties this file is responsible for:
   * The email is passed as delimited, untrusted data, apart from instructions.
   * The model's answer must parse into a closed schema or it is discarded.
   * A failure of any kind degrades to the keyword baseline plus human review.
+  * The model cannot rate a disclosed password, OTP, TAC or PIN below "high".
 """
 from __future__ import annotations
 
@@ -140,11 +141,15 @@ def triage(email: EmailIn, provider: Provider | None, review_threshold: float = 
     summary, _ = mask(output.summary)
 
     reasons: list[str] = []
+    urgency = output.urgency
+    if urgency is not Urgency.high and guard.credentials_disclosed(f"{subject}\n{body}"):
+        urgency = Urgency.high
+        reasons.append("urgency_raised_credentials_disclosed")
     if suspected:
         reasons.append("injection_suspected")
     if output.confidence < review_threshold:
         reasons.append("low_confidence")
-    if output.urgency is Urgency.high:
+    if urgency is Urgency.high:
         reasons.append("high_urgency")
     if output.category is Category.fraud_security:
         reasons.append("fraud_case")
@@ -152,7 +157,7 @@ def triage(email: EmailIn, provider: Provider | None, review_threshold: float = 
 
     result = TriageResult(
         category=output.category,
-        urgency=output.urgency,
+        urgency=urgency,
         summary=summary,
         suggested_reply=reply,
         confidence=output.confidence,

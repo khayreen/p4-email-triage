@@ -43,6 +43,30 @@ def injection_suspected(text: str) -> bool:
     return bool(_INJECTION.search(normalise(text)))
 
 
+# A customer saying they have already handed over a password, OTP, TAC or PIN is an
+# active compromise: the account can be emptied within minutes. The model rated one
+# such email (F05) "medium", so this rule sets a floor in code that the model cannot
+# lower. It needs a first-person disclosure ("I typed in my password", "saya beri
+# OTP"), so "a caller asked for my TAC and I refused" and "I entered the wrong PIN"
+# do not trigger it.
+_SECRET = r"(?:password|passcode|otp|tac|one[- ]time (?:password|code)|security code|kata laluan|kod)"
+_GAP = r"(?:\W+\w+){0,5}?\W+"
+_ENTER = r"(?:entered|typed(?: in)?|keyed(?: in)?|filled in|masukkan|memasukkan|taip)"
+_GIVE = (r"(?:gave|shared|provided|sent|told|disclosed|read out|"
+         r"beri|berikan|memberi|bagi|kongsi|berkongsi|hantar|menghantar|sebut)")
+_NEG = r"(?:not|never|didn't|did not|don't|do not|refused|tidak|tak|belum|enggan)"
+_DISCLOSED = re.compile(
+    rf"\b(?:i|we|saya|kami)\b(?:(?!\b{_NEG}\b)[^.!?\n]){{0,80}}?"
+    rf"\b(?:{_ENTER}{_GAP}{_SECRET}|{_GIVE}{_GAP}(?:{_SECRET}|pin))\b",
+    re.IGNORECASE,
+)
+
+
+def credentials_disclosed(text: str) -> bool:
+    """True when the customer says they gave away a password, OTP, TAC or PIN."""
+    return bool(_DISCLOSED.search(normalise(text)))
+
+
 def neutralise_delimiters(text: str) -> str:
     """Stop an email from closing our data block and starting its own section."""
     return text.replace("<", "‹").replace(">", "›")

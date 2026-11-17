@@ -42,7 +42,7 @@ def per_class(pairs: list[tuple[str, str]], labels: list[str]) -> dict[str, dict
 
 
 def evaluate(rows: list[dict], provider, sleep: float) -> dict:
-    cat_pairs, urg_pairs, misses, latencies = [], [], [], []
+    cat_pairs, urg_pairs, misses, latencies, predictions = [], [], [], [], []
     fallbacks = 0
     for i, row in enumerate(rows, 1):
         result = triage(EmailIn(subject=row["subject"], body=row["body"]), provider)
@@ -51,6 +51,7 @@ def evaluate(rows: list[dict], provider, sleep: float) -> dict:
         cat_pairs.append((row["category"], result.category.value))
         urg_pairs.append((row["urgency"], result.urgency.value))
         latencies.append(result.latency_ms)
+        predictions.append({"id": row["id"], "got": f"{result.category.value}/{result.urgency.value}", "classifier": result.classifier})
         if result.category.value != row["category"] or result.urgency.value != row["urgency"]:
             misses.append({
                 "id": row["id"], "subject": row["subject"],
@@ -82,6 +83,7 @@ def evaluate(rows: list[dict], provider, sleep: float) -> dict:
         "per_urgency": per_class(urg_pairs, URGS),
         "confusion": {t: {p: sum(1 for a, b in cat_pairs if a == t and b == p) for p in CATS} for t in CATS},
         "misses": misses,
+        "predictions": predictions,
     }
 
 
