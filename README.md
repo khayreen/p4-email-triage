@@ -39,17 +39,18 @@ Measured on 120 hand-written, labelled synthetic emails (`data/emails.jsonl`, 20
 | Classifier | Category accuracy | Urgency accuracy | Both correct | High-urgency missed |
 |---|---|---|---|---|
 | Keyword baseline | 86.7% | 55.8% | 47.5% | 7 of 30 |
-| LLM | *not measured yet* | | | |
+| LLM (Groq, `openai/gpt-oss-120b`) | **96.7%** | **76.7%** | **75.0%** | 5 of 30 |
 
 The baseline row is reproducible with no API key: `python -m eval.run_eval --classifier baseline`. Full report with the confusion matrix and every miss: [`results/baseline.md`](results/baseline.md).
 
-To fill in the LLM row, set an API key and run `python -m eval.run_eval --classifier llm`. It writes `results/llm.md`.
+The LLM row is one run on 17 November 2026, reproducible with an API key: `python -m eval.run_eval --classifier llm`. It writes `results/llm.md`.
 
 **Read these numbers with care:**
 
 - The emails are synthetic and written by the same person who wrote the keyword rules, so the baseline is flattered. Real customer mail is messier.
 - 120 emails is a small test set. A difference of a few points between two runs is noise.
-- "High-urgency missed" matters more than overall accuracy: a missed fraud report costs far more than a mislabelled newsletter.
+- "High-urgency missed" matters more than overall accuracy: a missed fraud report costs far more than a mislabelled newsletter. The LLM still misses 5 of 30, so urgency is the weak point and the next thing to improve.
+- The LLM row is a single run. It has not been repeated, and the prompt has not been tuned against these results.
 
 ## LLM providers
 
@@ -127,7 +128,7 @@ Email content is attacker-controlled and gets displayed to staff. The review pag
 
 ## Limitations
 
-- The LLM accuracy has not been measured yet (see Results).
+- The LLM still rates 5 of 30 high-urgency emails too low (see Results).
 - The Gmail connector's message parsing is unit-tested, but the OAuth flow has not been run against a live mailbox.
 - SQLite and a single process are fine for a demo, not for production volume.
 - The API key is a single shared secret, with no per-user accounts or audit of who approved what.
