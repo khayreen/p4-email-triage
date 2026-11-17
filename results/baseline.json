@@ -1,0 +1,502 @@
+{
+  "n": 120,
+  "category_accuracy": 0.8667,
+  "category_macro_f1": 0.8597,
+  "urgency_accuracy": 0.5583,
+  "both_correct": 0.475,
+  "high_urgency_missed": 7,
+  "high_urgency_total": 30,
+  "llm_fallbacks": 0,
+  "median_latency_ms": 0,
+  "per_category": {
+    "fraud_security": {
+      "precision": 0.917,
+      "recall": 0.55,
+      "f1": 0.687,
+      "support": 20
+    },
+    "complaint": {
+      "precision": 0.941,
+      "recall": 0.8,
+      "f1": 0.865,
+      "support": 20
+    },
+    "account_services": {
+      "precision": 0.739,
+      "recall": 0.85,
+      "f1": 0.791,
+      "support": 20
+    },
+    "card_services": {
+      "precision": 0.87,
+      "recall": 1.0,
+      "f1": 0.93,
+      "support": 20
+    },
+    "financing": {
+      "precision": 0.952,
+      "recall": 1.0,
+      "f1": 0.976,
+      "support": 20
+    },
+    "other": {
+      "precision": 0.833,
+      "recall": 1.0,
+      "f1": 0.909,
+      "support": 20
+    }
+  },
+  "per_urgency": {
+    "high": {
+      "precision": 0.657,
+      "recall": 0.767,
+      "f1": 0.708,
+      "support": 30
+    },
+    "medium": {
+      "precision": 0.387,
+      "recall": 0.75,
+      "f1": 0.511,
+      "support": 32
+    },
+    "low": {
+      "precision": 0.87,
+      "recall": 0.345,
+      "f1": 0.494,
+      "support": 58
+    }
+  },
+  "confusion": {
+    "fraud_security": {
+      "fraud_security": 11,
+      "complaint": 0,
+      "account_services": 5,
+      "card_services": 3,
+      "financing": 1,
+      "other": 0
+    },
+    "complaint": {
+      "fraud_security": 0,
+      "complaint": 16,
+      "account_services": 1,
+      "card_services": 0,
+      "financing": 0,
+      "other": 3
+    },
+    "account_services": {
+      "fraud_security": 1,
+      "complaint": 1,
+      "account_services": 17,
+      "card_services": 0,
+      "financing": 0,
+      "other": 1
+    },
+    "card_services": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 20,
+      "financing": 0,
+      "other": 0
+    },
+    "financing": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 20,
+      "other": 0
+    },
+    "other": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 0,
+      "other": 20
+    }
+  },
+  "misses": [
+    {
+      "id": "F03",
+      "subject": "Card charged in another country",
+      "expected": "fraud_security/high",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "F04",
+      "subject": "Phishing SMS pretending to be Bank Contoh",
+      "expected": "fraud_security/medium",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "F05",
+      "subject": "Clicked a link and entered my password",
+      "expected": "fraud_security/high",
+      "got": "account_services/high"
+    },
+    {
+      "id": "F06",
+      "subject": "Someone opened an account using my IC",
+      "expected": "fraud_security/high",
+      "got": "account_services/high"
+    },
+    {
+      "id": "F07",
+      "subject": "Lost wallet with both cards inside",
+      "expected": "fraud_security/high",
+      "got": "card_services/high"
+    },
+    {
+      "id": "F09",
+      "subject": "Akaun saya digodam",
+      "expected": "fraud_security/high",
+      "got": "account_services/high"
+    },
+    {
+      "id": "F10",
+      "subject": "Is this email really from you?",
+      "expected": "fraud_security/medium",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "F13",
+      "subject": "Fake Bank Contoh page on Facebook",
+      "expected": "fraud_security/medium",
+      "got": "financing/medium"
+    },
+    {
+      "id": "F14",
+      "subject": "Duplicate debit that I never authorised",
+      "expected": "fraud_security/high",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "F16",
+      "subject": "How do I protect myself from scams",
+      "expected": "fraud_security/low",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "F17",
+      "subject": "Kad saya hilang dan ada transaksi",
+      "expected": "fraud_security/high",
+      "got": "card_services/high"
+    },
+    {
+      "id": "F18",
+      "subject": "Cheque I did not write was cleared",
+      "expected": "fraud_security/high",
+      "got": "account_services/high"
+    },
+    {
+      "id": "F19",
+      "subject": "Caller asked for my TAC number",
+      "expected": "fraud_security/medium",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "C04",
+      "subject": "Your app keeps crashing",
+      "expected": "complaint/medium",
+      "got": "other/low"
+    },
+    {
+      "id": "C08",
+      "subject": "ATM out of service for two weeks",
+      "expected": "complaint/medium",
+      "got": "other/low"
+    },
+    {
+      "id": "C12",
+      "subject": "Marketing calls will not stop",
+      "expected": "complaint/medium",
+      "got": "other/low"
+    },
+    {
+      "id": "C13",
+      "subject": "Long queue, only one counter open",
+      "expected": "complaint/low",
+      "got": "complaint/medium"
+    },
+    {
+      "id": "C16",
+      "subject": "Your chatbot is useless",
+      "expected": "complaint/low",
+      "got": "complaint/medium"
+    },
+    {
+      "id": "C17",
+      "subject": "Unhappy with branch closure",
+      "expected": "complaint/low",
+      "got": "complaint/medium"
+    },
+    {
+      "id": "C18",
+      "subject": "Privacy complaint - statement sent to wrong address",
+      "expected": "complaint/high",
+      "got": "complaint/medium"
+    },
+    {
+      "id": "C19",
+      "subject": "Poor handling of my late father's account",
+      "expected": "complaint/medium",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A02",
+      "subject": "Update my mailing address",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A04",
+      "subject": "Cara buka akaun simpanan",
+      "expected": "account_services/low",
+      "got": "other/low"
+    },
+    {
+      "id": "A07",
+      "subject": "Close my current account",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A08",
+      "subject": "Dormant account reactivation",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A10",
+      "subject": "Fixed deposit maturity question",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A11",
+      "subject": "Tukar nombor telefon berdaftar",
+      "expected": "account_services/medium",
+      "got": "fraud_security/high"
+    },
+    {
+      "id": "A12",
+      "subject": "Open a joint account",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A13",
+      "subject": "Account frozen without notice",
+      "expected": "account_services/high",
+      "got": "complaint/high"
+    },
+    {
+      "id": "A14",
+      "subject": "Name correction on account",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A16",
+      "subject": "Add nominee to my account",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A18",
+      "subject": "Foreign currency transfer rates",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "A20",
+      "subject": "Standing instruction set up",
+      "expected": "account_services/low",
+      "got": "account_services/medium"
+    },
+    {
+      "id": "K01",
+      "subject": "Request to waive annual fee",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K02",
+      "subject": "Credit limit increase",
+      "expected": "card_services/low",
+      "got": "card_services/high"
+    },
+    {
+      "id": "K06",
+      "subject": "Redeem reward points",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K09",
+      "subject": "Convert purchase to instalment plan",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K10",
+      "subject": "Change card PIN",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K11",
+      "subject": "Supplementary card for spouse",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K13",
+      "subject": "Batalkan kad kredit",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K15",
+      "subject": "Late payment charge on card",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K16",
+      "subject": "Contactless limit",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K17",
+      "subject": "Balance transfer offer",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K18",
+      "subject": "Upgrade to platinum card",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "K20",
+      "subject": "Card statement e-delivery",
+      "expected": "card_services/low",
+      "got": "card_services/medium"
+    },
+    {
+      "id": "L02",
+      "subject": "Home financing application status",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L03",
+      "subject": "Mohon penjadualan semula pembiayaan",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L04",
+      "subject": "Car loan interest rate",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L05",
+      "subject": "Missed instalment this month",
+      "expected": "financing/medium",
+      "got": "financing/high"
+    },
+    {
+      "id": "L06",
+      "subject": "ASB financing enquiry",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L08",
+      "subject": "Letter of demand received",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L09",
+      "subject": "Refinance my house",
+      "expected": "financing/low",
+      "got": "financing/high"
+    },
+    {
+      "id": "L11",
+      "subject": "Personal loan eligibility",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L12",
+      "subject": "Release of car ownership after full settlement",
+      "expected": "financing/high",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L13",
+      "subject": "Change instalment deduction date",
+      "expected": "financing/low",
+      "got": "financing/high"
+    },
+    {
+      "id": "L14",
+      "subject": "SME business financing",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L15",
+      "subject": "Redraw from flexi home loan",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L17",
+      "subject": "Education loan for my daughter",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L19",
+      "subject": "Partial prepayment",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "L20",
+      "subject": "Guarantor wants to withdraw",
+      "expected": "financing/low",
+      "got": "financing/medium"
+    },
+    {
+      "id": "O01",
+      "subject": "Boost your website ranking today",
+      "expected": "other/low",
+      "got": "other/high"
+    },
+    {
+      "id": "O17",
+      "subject": "Out of office",
+      "expected": "other/low",
+      "got": "other/high"
+    },
+    {
+      "id": "O20",
+      "subject": "Nice new branch",
+      "expected": "other/low",
+      "got": "other/high"
+    }
+  ],
+  "classifier": "baseline",
+  "title": "keyword baseline",
+  "date": "2026-11-17"
+}

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Triage review queue</title>
+<style>
+  :root { --bg:#f5f6f3; --card:#fff; --ink:#15262b; --muted:#5d6b6e; --line:#dde2dd; --accent:#0b8577; --warn:#b4530a; --bad:#b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1a1c; --card:#16262a; --ink:#e6eeeb; --muted:#9aaba8; --line:#28393d; --accent:#3ccdb9; --warn:#f0a35e; --bad:#ff8a80; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:28px 16px 60px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 18px; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  input, textarea, select, button { font:inherit; color:inherit; }
+  input, textarea, select { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  button { border:1px solid var(--line); background:var(--card); border-radius:8px; padding:8px 14px; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  @media (prefers-color-scheme: dark) { button.primary { color:#0f1a1c; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .pill { font-size:12px; font-weight:600; border:1px solid var(--line); border-radius:999px; padding:2px 9px; }
+  .pill.high { color:var(--bad); border-color:var(--bad); }
+  .pill.medium { color:var(--warn); border-color:var(--warn); }
+  .pill.flag { color:var(--bad); border-color:var(--bad); }
+  h2 { font-size:17px; margin:0 0 4px; overflow-wrap:anywhere; }
+  .from { color:var(--muted); font-size:14px; margin:0 0 8px; overflow-wrap:anywhere; }
+  pre { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--bg); border-radius:8px; padding:10px; margin:8px 0; font:14px/1.5 ui-monospace, Menlo, Consolas, monospace; max-height:220px; overflow:auto; }
+  textarea { width:100%; min-height:130px; margin:6px 0 10px; }
+  .label { font-size:13px; color:var(--muted); font-weight:600; margin-top:10px; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
+  #msg { color:var(--muted); min-height:22px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Triage review queue</h1>
+  <p class="sub">Nothing is sent from here. Approving records the final reply for an agent to send.</p>
+  <div class="bar">
+    <select id="status" aria-label="Status">
+      <option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option>
+    </select>
+    <input id="key" type="password" placeholder="API key (if set)" aria-label="API key">
+    <button id="reload">Refresh</button>
+    <span id="msg" role="status"></span>
+  </div>
+  <div id="list"></div>
+</main>
+<script>
+// Email content is attacker-controlled, so it is only ever written with
+// textContent. No innerHTML anywhere on this page.
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const headers = () => { const h = { "Content-Type": "application/json" }; if ($("key").value) h["X-API-Key"] = $("key").value; return h; };
+
+async function call(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: headers() });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || ("HTTP " + r.status));
+  return r.json();
+}
+
+async function decide(id, action, body) {
+  try { await call(`/queue/${id}/${action}`, { method: "POST", body: JSON.stringify(body) }); $("msg").textContent = `Item ${id} ${action === "approve" ? "approved" : "rejected"}.`; load(); }
+  catch (e) { $("msg").textContent = e.message; }
+}
+
+function card(item) {
+  const r = item.result, c = el("div", "card");
+  const meta = el("div", "meta");
+  meta.append(el("span", "pill", r.category.replace("_", " ")), el("span", "pill " + r.urgency, r.urgency + " urgency"),
+              el("span", "pill", Math.round(r.confidence * 100) + "% confident"), el("span", "pill", r.classifier));
+  for (const reason of r.review_reasons) meta.append(el("span", "pill flag", reason.replaceAll("_", " ")));
+  c.append(meta, el("h2", null, item.subject || "(no subject)"), el("p", "from", `#${item.id} · ${item.sender || "unknown sender"} · ${item.received_at}`));
+  c.append(el("div", "label", "Summary"), el("div", null, r.summary), el("div", "label", "Original email"), el("pre", null, item.body));
+  if (item.status === "pending") {
+    const ta = el("textarea"); ta.value = r.suggested_reply; ta.setAttribute("aria-label", "Reply draft");
+    const actions = el("div", "actions");
+    const ok = el("button", "primary", "Approve reply"), no = el("button", null, "Reject");
+    ok.onclick = () => decide(item.id, "approve", { reply: ta.value });
+    no.onclick = () => decide(item.id, "reject", { reason: "rejected in review UI" });
+    actions.append(ok, no);
+    c.append(el("div", "label", "Draft reply (edit before approving)"), ta, actions);
+  } else {
+    c.append(el("div", "label", item.status === "approved" ? "Approved reply" : "Rejected"), el("pre", null, item.final_reply || item.review_note || ""));
+  }
+  return c;
+}
+
+async function load() {
+  const list = $("list");
+  try {
+    const items = await call("/queue?status=" + $("status").value);
+    list.replaceChildren(...(items.length ? items.map(card) : [el("p", "sub", "Nothing here.")]));
+    if (!$("msg").textContent.startsWith("Item")) $("msg").textContent = items.length + " item(s)";
+  } catch (e) { list.replaceChildren(); $("msg").textContent = e.message; }
+}
+$("reload").onclick = () => { $("msg").textContent = ""; load(); };
+$("status").onchange = () => { $("msg").textContent = ""; load(); };
+load();
+</script>
+</body>
+</html>
