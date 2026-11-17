@@ -6,9 +6,9 @@ An API that reads a bank customer's email, sorts it by **category** and **urgenc
 
 Built as a portfolio project on the theme **build it, attack it, defend it**: the automation works, the system is attacked with its own test suite, and each defence is enforced by a test that fails if the defence is removed.
 
-![Review queue](docs/review-queue.png)
+![Demo: reviewing a prompt-injection email, then approving a reply to a fraud report](docs/demo.gif)
 
-*The review queue running on the sample inbox in keyword-baseline mode (no LLM key). The second card is a prompt-injection email, flagged for review.*
+*The review queue on the sample inbox. The first email is a prompt-injection attempt, flagged for review. Recorded without an LLM key, so the agent writes the reply; with a key, a draft is filled in for the agent to edit.*
 
 ## What it does
 
@@ -43,7 +43,7 @@ Measured on 120 hand-written, labelled synthetic emails (`data/emails.jsonl`, 20
 
 The baseline row is reproducible with no API key: `python -m eval.run_eval --classifier baseline`. Full report with the confusion matrix and every miss: [`results/baseline.md`](results/baseline.md).
 
-To fill in the LLM row, set an API key (see below) and run `python -m eval.run_eval --classifier llm`. It writes `results/llm.md`.
+To fill in the LLM row, set an API key and run `python -m eval.run_eval --classifier llm`. It writes `results/llm.md`.
 
 **Read these numbers with care:**
 
@@ -51,31 +51,9 @@ To fill in the LLM row, set an API key (see below) and run `python -m eval.run_e
 - 120 emails is a small test set. A difference of a few points between two runs is noise.
 - "High-urgency missed" matters more than overall accuracy: a missed fraud report costs far more than a mislabelled newsletter.
 
-## Quick start
+## LLM providers
 
-```bash
-git clone https://github.com/khayreen/p4-email-triage.git
-cd p4-email-triage
-python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
-pip install -r requirements-dev.txt
-
-pytest -q                                            # 72 tests, no API key needed
-python -m eval.run_eval --classifier baseline        # baseline accuracy
-```
-
-Run the service with an LLM:
-
-```bash
-cp .env.example .env          # then put your key in .env
-uvicorn app.asgi:app --reload
-python -m scripts.ingest --path data/sample_inbox.jsonl
-```
-
-Open <http://localhost:8000> for the review queue and <http://localhost:8000/docs> for the API docs.
-
-### Choosing an LLM
-
-Every supported provider speaks the OpenAI-compatible chat API, so switching is one line in `.env`:
+Every supported provider speaks the OpenAI-compatible chat API, so switching provider is a one-line setting:
 
 | `LLM_PROVIDER` | Key variable | Notes |
 |---|---|---|
@@ -98,11 +76,6 @@ Free-tier model names change. If a call fails with "model not found", set `LLM_M
 | `POST` | `/queue/{id}/reject` | Reject with a reason |
 | `GET` | `/stats` | Counts by status and category |
 | `GET` | `/health` | Which classifier is active |
-
-```bash
-curl -X POST localhost:8000/triage -H 'content-type: application/json' \
-  -d '{"subject":"Lost card","body":"My wallet was stolen, please block my cards.","sender":"a@example.com"}'
-```
 
 There is deliberately no "send" endpoint. Approval records the final reply; sending stays a human action.
 
