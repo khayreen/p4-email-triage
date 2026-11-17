@@ -1,0 +1,137 @@
+{
+  "n": 42,
+  "category_accuracy": 0.9524,
+  "category_macro_f1": 0.952,
+  "urgency_accuracy": 0.9762,
+  "both_correct": 0.9524,
+  "high_urgency_missed": 0,
+  "high_urgency_total": 13,
+  "llm_fallbacks": 0,
+  "median_latency_ms": 1698,
+  "per_category": {
+    "fraud_security": {
+      "precision": 1.0,
+      "recall": 0.857,
+      "f1": 0.923,
+      "support": 7
+    },
+    "complaint": {
+      "precision": 0.875,
+      "recall": 1.0,
+      "f1": 0.933,
+      "support": 7
+    },
+    "account_services": {
+      "precision": 0.875,
+      "recall": 1.0,
+      "f1": 0.933,
+      "support": 7
+    },
+    "card_services": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 7
+    },
+    "financing": {
+      "precision": 1.0,
+      "recall": 0.857,
+      "f1": 0.923,
+      "support": 7
+    },
+    "other": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 7
+    }
+  },
+  "per_urgency": {
+    "high": {
+      "precision": 0.929,
+      "recall": 1.0,
+      "f1": 0.963,
+      "support": 13
+    },
+    "medium": {
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1": 0.947,
+      "support": 10
+    },
+    "low": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 19
+    }
+  },
+  "confusion": {
+    "fraud_security": {
+      "fraud_security": 6,
+      "complaint": 0,
+      "account_services": 1,
+      "card_services": 0,
+      "financing": 0,
+      "other": 0
+    },
+    "complaint": {
+      "fraud_security": 0,
+      "complaint": 7,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 0,
+      "other": 0
+    },
+    "account_services": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 7,
+      "card_services": 0,
+      "financing": 0,
+      "other": 0
+    },
+    "card_services": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 7,
+      "financing": 0,
+      "other": 0
+    },
+    "financing": {
+      "fraud_security": 0,
+      "complaint": 1,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 6,
+      "other": 0
+    },
+    "other": {
+      "fraud_security": 0,
+      "complaint": 0,
+      "account_services": 0,
+      "card_services": 0,
+      "financing": 0,
+      "other": 7
+    }
+  },
+  "misses": [
+    {
+      "id": "HF6",
+      "subject": "Safe banking while travelling",
+      "expected": "fraud_security/low",
+      "got": "account_services/low"
+    },
+    {
+      "id": "HL6",
+      "subject": "Instalment deducted twice this month",
+      "expected": "financing/medium",
+      "got": "complaint/high"
+    }
+  ],
+  "classifier": "llm",
+  "title": "LLM (groq, openai/gpt-oss-120b)",
+  "date": "2026-11-17",
+  "data_file": "emails_holdout.jsonl"
+}
